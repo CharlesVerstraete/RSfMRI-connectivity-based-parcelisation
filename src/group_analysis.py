@@ -31,18 +31,11 @@ References:
 # Import section
 ''' math package '''
 import numpy as np
-from scipy.spatial import distance
-from scipy.sparse import csgraph
-from numpy import linalg as LA
 
 ''' nifti package '''   
 import nibabel as nib                                          
 import nilearn.masking as nimsk
 from nilearn.image import resample_img
-
-''' clustering package '''
-from sklearn.cluster import SpectralClustering
-from sklearn.metrics import silhouette_score, calinski_harabasz_score
 
 ''' stat package '''   
 import pandas as pd
@@ -86,22 +79,22 @@ fig, axes = plt.subplots(2, 3, figsize=(20, 10))
 
 for idx, metric in enumerate(metrics):
     # Boxplot
-    sns.boxplot(x='hemisphere', y=metric, data=df, ax=axes[0, idx])
+    sns.violinplot(x='hemisphere', y=metric, data=df, ax=axes[0, idx])
     # Add individual points
     sns.stripplot(x='hemisphere', y=metric, data=df, 
                     color='black', alpha=0.3, ax=axes[0, idx])
     
-    sns.regplot(x='L', y='R', data=df, ax=axes[1, idx])
     # Perform t-test
     left = df[df['hemisphere'] == 'L'][metric].values
     right = df[df['hemisphere'] == 'R'][metric].values
+    sns.regplot(x=left, y=right, data=df, ax=axes[1, idx])
 
     t_stat, p_val = stats.ttest_rel(left, right)
     corr, pval = stats.pearsonr(left, right)
 
         # Add title with p-value
-    axes[0, idx].set_title(f'{metric}\np={p_val:.3f}')
-    axes[1, idx].set_title(f'{metric}\nCorrelation: {corr:.3f}, p={pval:.3f}')
+    axes[0, idx].set_title(f'{metric}\np={p_val:.3e}')
+    axes[1, idx].set_title(f'{metric}\nCorrelation: {corr:.2f}, p={pval:.3e}')
 
     
 plt.tight_layout()

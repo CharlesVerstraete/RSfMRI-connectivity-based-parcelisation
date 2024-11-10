@@ -41,15 +41,15 @@ if __name__ == "__main__" :
 
     # Anatomical 
     bids_anat_dir = os.path.join("data", "anat")
-    original_name = f's{i}_anat.nii'
+    original_name = f'anat.nii'
     new_name = "T1w.nii"
     format_loop(subject_fo_data_dir, bids_anat_dir, n_subjects, original_name, new_name, operation="copy")
 
     # Functional
     bids_func_dir = os.path.join("data", "func")
-    original_name = f's{i}_func.nii'
+    original_name = f'func.nii'
     new_name = "task-rest_bold.nii"
-    format_loop(subject_fo_data_dir, bids_func_dir, n_subjects, original_name, new_name, operation="copy")
+    format_loop(subject_fo_data_dir, bids_func_dir, n_subjects, original_name, new_name, operation="compress")
 
     # ROI
     df_new_y = pd.read_csv("new_y.csv")

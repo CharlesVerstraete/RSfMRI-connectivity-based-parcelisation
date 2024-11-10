@@ -124,6 +124,28 @@ def try_binarize(src_path : str, dest_path : str) -> list :
     return np.array(counter)
 
 
+def try_compress(src_path : str, dest_path : str) -> list :
+    """ Try to compress file """
+
+    counter = [0, 0]
+    try:
+        if os.path.isfile(src_path):
+            img = nib.load(src_path)
+            data = img.get_fdata()
+            if data.shape[-1] > 385:
+                print(f"Reducing functional data from {data.shape[-1]} to 385 timepoints")
+                data = data[:, :, :, :385]
+                print(f"New shape: {data.shape}")
+            save_nifti(data, img.affine, dest_path+'.gz')
+            counter[0] = 1
+        else:
+            print(f"WARNING: Source file not found - {src_path}")
+            counter[1] = 1
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
+        counter[1] = 1
+    return np.array(counter)
+
 def format_loop(src_dir : str, 
                 dest_dir : str, 
                 n_subjects : int,
@@ -151,6 +173,10 @@ def format_loop(src_dir : str,
             src_path = os.path.join(src_dir, f"s_{i}", f"s{i}_{original_name}")
             dest_path = os.path.join(dest_dir, f"sub-{i:03d}_{new_name}")
             counter += try_binarize(src_path, dest_path)
+        elif operation == "compress":
+            src_path = os.path.join(src_dir, f"s_{i}", f"s{i}_{original_name}")
+            dest_path = os.path.join(dest_dir, f"sub-{i:03d}_{new_name}")
+            counter += try_compress(src_path, dest_path)
 
     print(f"\nSummary:")
     print(f"Successfully processed: {counter[0]}")

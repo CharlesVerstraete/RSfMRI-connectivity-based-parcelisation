@@ -29,7 +29,7 @@ References:
 import nibabel as nib
 import pandas as pd
 import numpy as np
-from format_helper import *
+from utils.format_helper import *
 
 
 def extract_voxel_features(voxels: np.ndarray) -> tuple:
