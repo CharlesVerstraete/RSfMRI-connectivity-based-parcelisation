@@ -29,8 +29,7 @@ References:
 import nibabel as nib
 import pandas as pd
 import numpy as np
-from utils.format_helper import *
-
+from src.utils.format_helper import *
 
 def extract_voxel_features(voxels: np.ndarray) -> tuple:
     """Extract morphometric features from voxel coordinates."""
@@ -101,7 +100,7 @@ def extract_morphometry(mask_path: str) -> dict:
     }
 
 
-def groupaverage_mask(input_dir : str, fileslist: list,  output_path: str) -> None:
+def groupaverage_mask_from_dir(input_dir : str, fileslist: list,  output_path: str) -> None:
     """Create group average mask from list of masks."""
     mask_paths = [os.path.join(input_dir, f) for f in fileslist]
     first_mask = nib.load(mask_paths[0])

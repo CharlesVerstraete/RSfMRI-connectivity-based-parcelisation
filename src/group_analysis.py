@@ -53,7 +53,7 @@ import sys
 import os 
 
 ''' custom package '''
-from utils.morphometry_tools import *
+from src.utils.morphometry_tools import *
 
 
 
@@ -66,8 +66,8 @@ roi_files = sorted(os.listdir(roi_dir))
 left_roi = [roi for roi in roi_files if roi.endswith('L_FO_mask.nii')]
 right_roi = [roi for roi in roi_files if roi.endswith('R_FO_mask.nii')]
 
-groupaverage_mask(roi_dir, left_roi, os.path.join(average_dir, "leftFO_mask_average.nii"))
-groupaverage_mask(roi_dir, right_roi, os.path.join(average_dir, "rightFO_mask_average.nii"))
+groupaverage_mask_from_dir(roi_dir, left_roi, os.path.join(average_dir, "leftFO_mask_average.nii"))
+groupaverage_mask_from_dir(roi_dir, right_roi, os.path.join(average_dir, "rightFO_mask_average.nii"))
 
 df = pd.read_csv("results/morphometry/morphometry.csv")
 
@@ -79,22 +79,48 @@ fig, axes = plt.subplots(2, 3, figsize=(20, 10))
 
 for idx, metric in enumerate(metrics):
     # Boxplot
-    sns.violinplot(x='hemisphere', y=metric, data=df, ax=axes[0, idx])
-    # Add individual points
-    sns.stripplot(x='hemisphere', y=metric, data=df, 
-                    color='black', alpha=0.3, ax=axes[0, idx])
+        # Add individual points
+    sns.stripplot(
+        x='hemisphere', 
+        y=metric, 
+        data=df, 
+        palette=['peachpuff', 'teal'], 
+        alpha=1, 
+        ax=axes[0, idx], 
+        hue='hemisphere')
     
+    sns.violinplot(
+        x='hemisphere',
+        y=metric, 
+        data=df, 
+        ax=axes[0, idx], 
+        alpha=0.4, 
+        hue='hemisphere', 
+        palette=['peachpuff', 'teal'])
+
     # Perform t-test
     left = df[df['hemisphere'] == 'L'][metric].values
     right = df[df['hemisphere'] == 'R'][metric].values
-    sns.regplot(x=left, y=right, data=df, ax=axes[1, idx])
 
-    t_stat, p_val = stats.ttest_rel(left, right)
-    corr, pval = stats.pearsonr(left, right)
+
+    sns.regplot(
+        x=left, 
+        y=right, 
+        data=df, 
+        ax=axes[1, idx], 
+        ci = 95,
+        scatter_kws={'alpha': 0.3, 'color': 'black', 's' : 12},
+        line_kws={'color': 'red', 'linewidth': 0.8})
+
+    t_stat, p_val_ttest = stats.ttest_rel(left, right)
+    corr, p_val_corr = stats.pearsonr(left, right)
 
         # Add title with p-value
-    axes[0, idx].set_title(f'{metric}\np={p_val:.3e}')
-    axes[1, idx].set_title(f'{metric}\nCorrelation: {corr:.2f}, p={pval:.3e}')
+    title = f'{metric}\nT-test: {t_stat:.2f}, p={p_val_ttest:.3e}' if p_val_ttest < 0.001 else f'{metric}\nT-test: {t_stat:.2f}, p={p_val_ttest:.3f}'
+    axes[0, idx].set_title(title)
+
+    title = f'Pearson corr: {corr:.2f}, p={p_val_corr:.3e}' if p_val_corr < 0.001 else f'Pearson corr: {corr:.2f}, p={p_val_corr:.3f}'
+    axes[1, idx].set_title(title)
 
     
 plt.tight_layout()
