@@ -52,13 +52,16 @@ class Parcel:
         seg_timeseries_mat = self.segmentation.extract_time_series(self.images.func_img)
         self.clustering = SpectralClusteringAnalyzer(self.subject_id, self.hemi,  roi_timeseries_mat.T, seg_timeseries_mat.T)
         
-    def search_optimal_clusters(self, max_clusters: int = 10):
+    def search_optimal_clusters(self, precomputed = False, max_clusters: int = 10):
         """Search for the optimal number of clusters."""
         if self.clustering is None:
             raise ValueError("Clustering object not initialized. Run init_clustering() first.")
         if self.clustering.roivox_distance is None:
-            print("Distance matrix not computed. Calculating zmap...")
-            self.clustering.get_zmap(self.io.output_dir)
+            if precomputed :
+                self.clustering.get_zmap(self.io.output_dir, precomputed=precomputed)
+            else:
+                print("Distance matrix not computed. Calculating zmap...")
+                self.clustering.get_zmap(self.io.output_dir)
         self.clustering.search_optimal_clusters(self.io.output_dir, max_clusters)
     
     def perform_clustering(self, n_clusters: int, n_jobs: int = -1, zmap_precomputed: bool = False):
