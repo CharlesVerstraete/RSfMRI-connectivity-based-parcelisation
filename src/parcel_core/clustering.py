@@ -99,10 +99,16 @@ class SpectralClusteringAnalyzer:
         self.labels = model.labels_ + 1
         self.n_clusters = n_clusters
         if self._nOut != 0 :
-            self.labels = np.insert(self.labels, self._posOut, 0)
+            N = len(self.labels) + self._nOut
+            full_labels = np.zeros(N, dtype=int)
+            mask = np.ones(N, dtype=bool)
+            mask[self._posOut] = False
+            full_labels[mask] = self.labels
+            self.labels = full_labels
+            #self.labels = np.insert(self.labels, self._posOut, 0)
 
     def compute_silhouette(self, labels) -> float:
-        return silhouette_score(self.roivox_distance, labels)
+        return silhouette_score(self.roivox_distance, labels, metric='correlation')
 
     def search_optimal_clusters(self, dir_path : str, max_clusters : int = 10) -> int:
         """ Search for the optimal number of clusters. """
@@ -115,7 +121,7 @@ class SpectralClusteringAnalyzer:
                 n_jobs = -1, 
                 random_state = 6,
                 n_neighbors = n_neighbors, 
-                assign_labels='kmeans',).fit(self.roivox_distance)
+                assign_labels='kmeans').fit(self.roivox_distance)
             scores.append(self.compute_silhouette(model.labels_))
         df = pd.DataFrame({'n_clusters': range(2, max_clusters + 1), 'silhouette_score': scores})
         if dir_path:
